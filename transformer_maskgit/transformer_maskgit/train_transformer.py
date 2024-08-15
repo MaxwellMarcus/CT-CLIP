@@ -344,7 +344,7 @@ class TransformerTrainer(nn.Module):
 
     def train(self, log_fn=noop):
         device = next(self.maskgittransformer.parameters()).device
-        device=torch.device('cuda')
+        device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         while self.steps < self.num_train_steps:
             logs = self.train_step()
             log_fn(logs)

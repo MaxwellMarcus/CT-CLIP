@@ -127,5 +127,5 @@ class CTReportDatasetinfer(Dataset):
         input_text = input_text.replace('\'', '')  
         input_text = input_text.replace('(', '')  
         input_text = input_text.replace(')', '')  
-        name_acc = nii_file.split("/")[-2]
+        name_acc = nii_file.split("/")[-1]
         return video_tensor, input_text, onehotlabels, name_acc

@@ -289,7 +289,7 @@ class CTViTTrainer(nn.Module):
 
     def train_step(self):
         device = self.device
-        device=torch.device('cuda')
+        device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
         steps = int(self.steps.item())
@@ -305,7 +305,7 @@ class CTViTTrainer(nn.Module):
         for i in range(3):
             for _ in range(self.grad_accum_every):
                 img = next(self.dl_iter)
-                device=torch.device('cuda')
+                device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
                 img = img.to(device)
 
                 with self.accelerator.autocast():
@@ -331,7 +331,7 @@ class CTViTTrainer(nn.Module):
 
             for _ in range(self.grad_accum_every):
                 img = next(self.dl_iter)
-                device=torch.device('cuda')
+                device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
                 img = img.to(device)
                 with self.accelerator.autocast():
 
@@ -369,7 +369,7 @@ class CTViTTrainer(nn.Module):
                 valid_data = next(self.valid_dl_iter)
 
                 is_video = valid_data.ndim == 5
-                device=torch.device('cuda')
+                device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
                 valid_data = valid_data.to(device)
 
                 recons = model(valid_data, return_recons_only = True)
@@ -416,7 +416,7 @@ class CTViTTrainer(nn.Module):
 
     def train(self, log_fn = noop):
         device = next(self.vae.parameters()).device
-        device=torch.device('cuda')
+        device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         while self.steps < self.num_train_steps:
             logs = self.train_step()

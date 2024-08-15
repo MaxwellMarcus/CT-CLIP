@@ -272,7 +272,7 @@ class CTVIT_inf(nn.Module):
 
     def infer(self, log_fn = noop):
         device = self.device
-        device=torch.device('cuda')
+        device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         steps = int(self.steps.item())
         apply_grad_penalty = not (steps % self.apply_grad_penalty_every)
         if True:
@@ -290,7 +290,7 @@ class CTVIT_inf(nn.Module):
                     valid_data = next(self.valid_dl_iter)
 
                     is_video = valid_data.ndim == 5
-                    device=torch.device('cuda')
+                    device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
                     valid_data = valid_data.to(device)
 
                     recons = model(valid_data, return_recons_only = True)

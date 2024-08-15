@@ -132,7 +132,7 @@ class Attention(nn.Module):
         attn_bias = None
     ):
         batch, device, dtype = x.shape[0], x.device, x.dtype
-        device=torch.device('cuda')
+        device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         if exists(context):
             context = self.context_norm(context)
 
@@ -168,7 +168,7 @@ class Attention(nn.Module):
 
         if self.causal:
             sim = sim + self.rel_pos_bias(sim)
-            device=torch.device('cuda')
+            device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             causal_mask = torch.ones((i, j), device = device, dtype = torch.bool).triu(j - i + 1)
             sim = sim.masked_fill(causal_mask, -torch.finfo(sim.dtype).max)
 
@@ -192,7 +192,7 @@ class AlibiPositionalBias(nn.Module):
         self.register_buffer('bias', None, persistent = False)
 
     def get_bias(self, i, j, device):
-        device=torch.device('cuda')
+        device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         i_arange = torch.arange(j - i, j, device = device)
         j_arange = torch.arange(j, device = device)
         bias = -torch.abs(rearrange(j_arange, 'j -> 1 1 j') - rearrange(i_arange, 'i -> 1 i 1'))
@@ -216,7 +216,7 @@ class AlibiPositionalBias(nn.Module):
 
         if exists(self.bias) and self.bias.shape[-1] >= j:
             return self.bias[..., :i, :j]
-        device=torch.device('cuda')
+        device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         bias = self.get_bias(i, j, device)
         bias = bias * self.slopes
 
@@ -257,7 +257,7 @@ class ContinuousPositionBias(nn.Module):
     def forward(self, *dimensions, device = torch.device('cpu')):
 
         if not exists(self.rel_pos) or not self.cache_rel_pos:
-            device=torch.device('cuda')
+            device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             positions = [torch.arange(d, device = device) for d in dimensions]
             grid = torch.stack(torch.meshgrid(*positions, indexing = 'ij'))
             grid = rearrange(grid, 'c ... -> (...) c')

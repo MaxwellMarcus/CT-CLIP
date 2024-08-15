@@ -182,7 +182,7 @@ class CTClipInference(nn.Module):
         )
         # prepare with accelerator
         self.dl_iter=cycle(self.dl)
-        self.device = self.accelerator.device
+        self.device = "cpu"#self.accelerator.device
         self.CTClip.to(self.device)
         self.lr_scheduler = CosineAnnealingWarmUpRestarts(self.optim,
                                                   T_0=4000000,    # Maximum number of iterations
@@ -261,12 +261,15 @@ class CTClipInference(nn.Module):
                     realall=[]
                     logits = []
 
-                    text_latent_list = []
-                    image_latent_list = []
+                    image_outs = []
+                    text_outs = []
                     accession_names=[]
                     pathologies = ['Medical material','Arterial wall calcification', 'Cardiomegaly', 'Pericardial effusion','Coronary artery wall calcification', 'Hiatal hernia','Lymphadenopathy', 'Emphysema', 'Atelectasis', 'Lung nodule','Lung opacity', 'Pulmonary fibrotic sequela', 'Pleural effusion', 'Mosaic attenuation pattern','Peribronchial thickening', 'Consolidation', 'Bronchiectasis','Interlobular septal thickening']
                     for i in tqdm.tqdm(range(len(self.ds))):
                         valid_data, text, onehotlabels, acc_name = next(self.dl_iter)
+                        print( text  )
+                        print( "acc_name: ", acc_name )
+                        print( "valid_data: ", valid_data )
 
                         plotdir = self.result_folder_txt
                         Path(plotdir).mkdir(parents=True, exist_ok=True)
@@ -274,39 +277,18 @@ class CTClipInference(nn.Module):
                         predictedlabels=[]
                         onehotlabels_append=[]
 
-                        for pathology in pathologies:
-                            text = [f"{pathology}.", f"not {pathology}."]
-                            text_tokens=self.tokenizer(
-                                            text, return_tensors="pt", padding="max_length", truncation=True, max_length=512).to(device)
+                        #for pathology in pathologies:
+                            #text = [f"{pathology}.", f"not {pathology}."]
+                        text_tokens=self.tokenizer(
+                                        text, return_tensors="pt", padding="max_length", truncation=True, max_length=512).to(device)
 
-                            output = model(text_tokens, valid_data.cuda(),  device=device)
+                        output = model(text_tokens, valid_data.to( device ),  return_latents=True, device=device)
+                        
+                        filename = acc_name[ 0 ].split( "." )[ 0 ]
 
-                            output = apply_softmax(output)
+                        np.save( f"{plotdir}{filename}.image.npy",  output[ 1 ].detach().cpu().numpy() )
+                        np.save( f"{plotdir}{filename}.text.npy", output[ 0 ].detach().cpu().numpy() )
 
-                            append_out=output.detach().cpu().numpy()
-                            predictedlabels.append(append_out[0])
-
-                        predictedall.append(predictedlabels)
-                        realall.append(onehotlabels.detach().cpu().numpy()[0])
-                        accession_names.append(acc_name[0])
-
-                    realall=np.array(realall)
-                    predictedall=np.array(predictedall)
-
-                    np.savez(f"{plotdir}labels_weights.npz", data=realall)
-                    np.savez(f"{plotdir}predicted_weights.npz", data=predictedall)
-                    with open(f"{plotdir}accessions.txt", "w") as file:
-                        for item in accession_names:
-                            file.write(item + "\n")
-
-
-                    dfs=evaluate_internal(predictedall,realall,pathologies, plotdir)
-
-                    writer = pd.ExcelWriter(f'{plotdir}aurocs.xlsx', engine='xlsxwriter')
-
-                    dfs.to_excel(writer, sheet_name='Sheet1', index=False)
-
-                    writer.close()
         self.steps += 1
         return logs
 
@@ -315,7 +297,7 @@ class CTClipInference(nn.Module):
 
     def infer(self, log_fn=noop):
         device = next(self.CTClip.parameters()).device
-        device=torch.device('cuda')
+        device=torch.device('cuda' if torch.cuda.is_available() else "cpu" )
         while self.steps < self.num_train_steps:
             logs = self.train_step()
             log_fn(logs)

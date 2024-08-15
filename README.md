@@ -1,3 +1,6 @@
+Make sure to download the CT-CLIP model and save it to "model.pt" in this directory
+
+
 # CT-CLIP: A foundation model utilizing chest CT volumes and radiology reports for supervised-level zero-shot detection of abnormalities
 Welcome to the official repository of CT-CLIP, a pioneering work in 3D medical imaging with a particular focus on chest CT volumes. CT-CLIP provides an open-source codebase, pre-trained models, and a unique dataset (CT-RATE) of chest CT volumes paired with radiology text reports, all freely accessible to researchers. You can access the dataset and pretrained model weights via the [HuggingFace repository](https://huggingface.co/datasets/ibrahimhamamci/CT-RATE).
 

@@ -1,0 +1,12 @@
+out/*
+input/*
+batch/*
+train_preprocessed/*
+test_data/*
+textout/*
+*.npy
+*.npz
+*.out
+trimmedmetadata.csv
+model.pt
+text_model.pt

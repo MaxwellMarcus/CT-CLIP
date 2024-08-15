@@ -118,10 +118,10 @@ def process_file(file_path):
 
 # Example usage:
 if __name__ == "__main__":
-    split_to_preprocess = 'train' #select the validation or test split
+    split_to_preprocess = '/input' #select the validation or test split
     nii_files = read_nii_files(split_to_preprocess)
 
-    df = pd.read_csv("train_metadata.csv") #select the metadata
+    df = pd.read_csv("metadata.csv") #select the metadata
 
     num_workers = 18  # Number of worker processes
 
